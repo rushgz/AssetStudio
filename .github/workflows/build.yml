@@ -13,8 +13,25 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: microsoft/setup-msbuild@v1.1
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      # 不使用 microsoft/setup-msbuild action，而是直接在 Windows 环境中查找 MSBuild
+      - name: Setup MSBuild Path
+        shell: powershell
+        run: |
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
+          if ($vsPath) {
+            Write-Host "Found MSBuild at: $vsPath"
+            echo "MSBUILD_PATH=$vsPath" >> $env:GITHUB_ENV
+            # 将 MSBuild 目录添加到 PATH
+            $msbuildDir = Split-Path -Parent $vsPath
+            echo "$msbuildDir" >> $env:GITHUB_PATH
+          } else {
+            Write-Error "MSBuild not found!"
+            exit 1
+          }
       
       - name: Download FBX SDK
         run: |

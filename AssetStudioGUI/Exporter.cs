@@ -258,8 +258,21 @@ namespace AssetStudioGUI
 
         private static bool TryExportFile(string dir, AssetItem item, string extension, out string fullPath)
         {
+            var container = item.Container;
+            if (!string.IsNullOrEmpty(container))
+            {
+                var name = Path.GetFileNameWithoutExtension(container);
+                if (!string.IsNullOrEmpty(name))
+                {
+                    container = name + "_";
+                }
+            }
+            if (string.IsNullOrEmpty(container))
+            {
+                container = string.Empty;
+            }
             var fileName = FixFileName(item.Text);
-            fullPath = Path.Combine(dir, fileName + extension);
+            fullPath = Path.Combine(dir, container + fileName + extension);
             if (!File.Exists(fullPath))
             {
                 Directory.CreateDirectory(dir);

@@ -57,20 +57,20 @@ jobs:
           name: AssetStudio.net6
           path: AssetStudioGUI/bin/Release/net6.0-windows/publish
 
+      - name: Extract tag name
+        if: startsWith(github.ref, 'refs/tags/')
+        id: get_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Create Release Package
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           mkdir release
           xcopy /E /I AssetStudioGUI\bin\Release\net6.0-windows\publish\* release\
           cd release
-          7z a -tzip ..\AssetStudio.zip *
+          7z a -tzip ..\AssetStudio-${{ steps.get_tag.outputs.TAG_NAME }}.zip *
           cd ..
-
-      - name: Extract tag name
-        if: startsWith(github.ref, 'refs/tags/')
-        id: get_tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        shell: bash
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -78,7 +78,7 @@ jobs:
         with:
           name: AssetStudio ${{ steps.get_tag.outputs.TAG_NAME }}
           files: |
-            AssetStudio.zip
+            AssetStudio-${{ steps.get_tag.outputs.TAG_NAME }}.zip
           draft: false
           prerelease: false
         env:
